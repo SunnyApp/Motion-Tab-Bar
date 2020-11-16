@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:motion_tab_bar/MotionTabBarView.dart';
-import 'package:motion_tab_bar/MotionTabController.dart';
-import 'package:motion_tab_bar/motiontabbar.dart';
+import 'package:motion_tab_bar/motion_tab_bar_view.dart';
+import 'package:motion_tab_bar/motion_tab_controller.dart';
+import 'package:motion_tab_bar/motion_tab_bar.dart';
 
 void main() => runApp(MyApp());
 
@@ -49,22 +49,18 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         appBar: AppBar(
           title: Text(widget.title),
         ),
-        bottomNavigationBar: MotionTabBar(
-          labels: [
-            "Account","Home","Dashboard"
-          ],
+        bottomNavigationBar: MotionTabBar.of(
+          labels: ["Account", "Home", "Dashboard"],
           initialSelectedTab: "Home",
           tabIconColor: Colors.green,
           tabSelectedColor: Colors.red,
-          onTabItemSelected: (int value){
+          onTabItemSelected: (int value) {
             print(value);
             setState(() {
               _tabController.index = value;
             });
           },
-          icons: [
-            Icons.account_box,Icons.home,Icons.menu
-          ],
+          icons: [Icons.account_box, Icons.home, Icons.menu],
           textStyle: TextStyle(color: Colors.red),
         ),
         body: MotionTabBarView(
