@@ -10,15 +10,17 @@ const double ALPHA_OFF = 0;
 const double ALPHA_ON = 1;
 const int ANIM_DURATION = 300;
 
+typedef TabCallback = void Function([bool fromController]);
+
 class TabItem extends StatefulWidget {
   final String title;
   final bool selected;
   final IconData iconData;
   final TextStyle textStyle;
-  final VoidCallback callbackFunction;
+  final TabCallback callbackFunction;
   final Color tabIconColor, tabSelectedColor;
 
-  TabItem({
+  const TabItem({
     @required this.title,
     @required this.selected,
     @required this.iconData,
@@ -49,7 +51,7 @@ class _TabItemState extends State<TabItem> {
     _setIconTextAlpha();
   }
 
-  _setIconTextAlpha() {
+  void _setIconTextAlpha() {
     setState(() {
       iconYAlign = (widget.selected) ? ICON_OFF : ICON_ON;
       textYAlign = (widget.selected) ? TEXT_ON : TEXT_OFF;

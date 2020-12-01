@@ -152,7 +152,7 @@ class _TabStyle extends AnimatedWidget {
   Widget build(BuildContext context) {
     final ThemeData themeData = Theme.of(context);
     final TabBarTheme tabBarTheme = TabBarTheme.of(context);
-    final Animation<double> animation = listenable;
+    final Animation<double> animation = listenable as Animation<double>;
 
     // To enable TextStyle.lerp(style1, style2, value), both styles must have
     // the same value of inherit. Force that to be inherit=true here.
@@ -229,7 +229,7 @@ class _TabLabelBarRenderer extends RenderFlex {
     RenderBox child = firstChild;
     final List<double> xOffsets = <double>[];
     while (child != null) {
-      final FlexParentData childParentData = child.parentData;
+      final FlexParentData childParentData = child.parentData as FlexParentData;
       xOffsets.add(childParentData.offset.dx);
       assert(child.parentData == childParentData);
       child = childParentData.nextSibling;
@@ -295,8 +295,9 @@ double _indexChangeProgress(MotionTabController controller) {
 
   // The controller's offset is changing because the user is dragging the
   // MotionTabBarView's PageView to the left or right.
-  if (!controller.indexIsChanging)
-    return (currentIndex - controllerValue).abs().clamp(0.0, 1.0);
+  if (!controller.indexIsChanging) {
+    return (currentIndex - controllerValue).abs().clamp(0.0, 1.0).toDouble();
+  }
 
   // The MotionTabController animation's value is changing from previousIndex to currentIndex.
   return (controllerValue - currentIndex).abs() /
@@ -494,7 +495,8 @@ class _DragAnimation extends Animation<double>
     assert(!controller.indexIsChanging);
     return (controller.animation.value - index.toDouble())
         .abs()
-        .clamp(0.0, 1.0);
+        .clamp(0.0, 1.0)
+        .toDouble();
   }
 }
 
@@ -847,8 +849,8 @@ class _TabBarState extends State<TabBar> {
         : _IndicatorPainter(
             controller: _controller,
             indicator: _indicator,
-            indicatorSize:
-                widget.indicatorSize ?? TabBarTheme.of(context).indicatorSize,
+            indicatorSize: (widget.indicatorSize ??
+                TabBarTheme.of(context).indicatorSize) as TabBarIndicatorSize,
             tabKeys: _tabKeys,
             old: _indicatorPainter,
           );
@@ -908,7 +910,9 @@ class _TabBarState extends State<TabBar> {
       case TextDirection.ltr:
         break;
     }
-    return (tabCenter - viewportWidth / 2.0).clamp(minExtent, maxExtent);
+    return (tabCenter - viewportWidth / 2.0)
+        .clamp(minExtent, maxExtent)
+        .toDouble();
   }
 
   double _tabCenteredScrollOffset(int index) {
@@ -1329,8 +1333,9 @@ class _TabBarViewState extends State<MotionTabBarView> {
         _controller.index = _pageController.page.floor();
         _currentIndex = _controller.index;
       }
-      _controller.offset =
-          (_pageController.page - _controller.index).clamp(-1.0, 1.0);
+      _controller.offset = (_pageController.page - _controller.index)
+          .clamp(-1.0, 1.0)
+          .toDouble();
     } else if (notification is ScrollEndNotification) {
       _controller.index = _pageController.page.round();
       _currentIndex = _controller.index;

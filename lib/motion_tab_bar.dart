@@ -2,6 +2,7 @@ library motion_tab_bar;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:motion_tab_bar/motion_tab_controller.dart';
 import 'package:vector_math/vector_math.dart' as vector;
 
 import 'tab_item.dart';
@@ -28,6 +29,7 @@ class TabInfo {
 }
 
 class MotionTabBar extends StatefulWidget {
+  final MotionTabController controller;
   final Color tabIconColor, tabSelectedColor, tabIconSelectedColor;
   final TextStyle textStyle;
   final OnTabSelected onTabItemSelected;
@@ -38,6 +40,7 @@ class MotionTabBar extends StatefulWidget {
     @required TextStyle textStyle,
     @required Color tabIconColor,
     @required Color tabSelectedColor,
+    MotionTabController controller,
     Color tabIconSelectedColor = CupertinoColors.white,
     OnTabSelected onTabItemSelected,
     @required String initialSelectedTab,
@@ -56,13 +59,14 @@ class MotionTabBar extends StatefulWidget {
     });
 
     return MotionTabBar(
+        controller: controller,
         textStyle: textStyle,
         tabIconColor: tabIconColor,
         tabSelectedColor: tabSelectedColor,
         onTabItemSelected: onTabItemSelected,
         initialSelectedTab: initialSelectedTab,
         tabIconSelectedColor: tabIconSelectedColor,
-        items: items);
+        items: items?.toList());
   }
 
   const MotionTabBar({
@@ -72,6 +76,7 @@ class MotionTabBar extends StatefulWidget {
     this.tabSelectedColor,
     this.onTabItemSelected,
     this.initialSelectedTab,
+    this.controller,
     this.items,
   })  : assert(initialSelectedTab != null),
         assert(tabSelectedColor != null),
@@ -96,10 +101,12 @@ class _MotionTabBarState extends State<MotionTabBar>
   // List<String> labels;
   // Map<String, IconData> icons;
 
+  List<TabItem> _tabs;
+
   int get tabAmount => widget.items.length;
   int get index => selectedTabItem?.index ?? 0;
 
-  get position {
+  double get position {
     double pace = 2 / (tabAmount - 1);
     return (pace * index) - 1;
   }
@@ -112,14 +119,19 @@ class _MotionTabBarState extends State<MotionTabBar>
 
   TabInfo get selectedTabItem => tabItems[selectedTab];
 
+  MotionTabController _controller;
   @override
   void initState() {
     super.initState();
-
+    _controller =
+        widget.controller ?? MotionTabController(vsync: this, initialIndex: 0);
+    _controller.addListener(_onTabChange);
     int i = 0;
     tabItems = widget.items.asMap().map((_, value) {
       return MapEntry(value.label, value.withIndex(i++));
     });
+
+    _tabs = this.generateTabItems();
 
     selectedTab = widget.initialSelectedTab;
     activeIcon = selectedTabItem?.icon;
@@ -172,7 +184,15 @@ class _MotionTabBarState extends State<MotionTabBar>
   void dispose() {
     _animationController.dispose();
     _fadeOutController.dispose();
+    _controller.dispose();
+    _controller.removeListener(_onTabChange);
     super.dispose();
+  }
+
+  void _onTabChange() {
+    if (this.index != _controller.index) {
+      _tabs[_controller.index].callbackFunction(true);
+    }
   }
 
   @override
@@ -277,7 +297,7 @@ class _MotionTabBarState extends State<MotionTabBar>
     );
   }
 
-  List<Widget> generateTabItems() {
+  List<TabItem> generateTabItems() {
     return widget.items.map((item) {
       return TabItem(
         selected: selectedTab == item.label,
@@ -286,11 +306,13 @@ class _MotionTabBarState extends State<MotionTabBar>
         textStyle: widget.textStyle,
         tabSelectedColor: widget.tabSelectedColor,
         tabIconColor: widget.tabIconColor,
-        callbackFunction: () {
+        callbackFunction: ([fromController]) {
           setState(() {
             activeIcon = item.icon;
             selectedTab = item.label;
-            widget.onTabItemSelected(index);
+            if (fromController != true) {
+              widget.onTabItemSelected(index);
+            }
           });
           _initAnimationAndStart(_positionAnimation.value, position);
         },
@@ -298,7 +320,7 @@ class _MotionTabBarState extends State<MotionTabBar>
     }).toList();
   }
 
-  _initAnimationAndStart(double from, double to) {
+  void _initAnimationAndStart(double from, double to) {
     _positionTween.begin = from;
     _positionTween.end = to;
 
